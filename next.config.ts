@@ -7,13 +7,17 @@ const withAnalyzer = withBundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  output: 'export', // Changed from 'standalone' to 'export' for static site generation
   eslint: {
     ignoreDuringBuilds: true,
   },
   reactStrictMode: true,
   productionBrowserSourceMaps: true,
+  // Configure base path if deploying to a subdirectory
+  basePath: process.env.GITHUB_ACTIONS ? '/battleship-xebia' : '',
+  // Disable image optimization since it's not supported with export
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'http',
