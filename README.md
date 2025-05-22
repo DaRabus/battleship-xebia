@@ -95,15 +95,16 @@ The game state is stored in your browser's localStorage, allowing you to:
 ## Deployment
 
 This project is set up to automatically deploy to GitHub Pages when changes are pushed to the main branch. The live version can be accessed at: 
-- https://your-username.github.io/battleship-xebia/
+- https://darabus.github.io/battleship-xebia/
 
 ### Manual Deployment
 
 You can also manually trigger the deployment from the GitHub Actions tab in your repository.
 
 ```bash
-# Build locally for deployment
+# Build locally for deployment 
 npm run build
+# The static files will be in the 'out' directory
 ```
 
 ## Future Enhancements

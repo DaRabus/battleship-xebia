@@ -7,7 +7,6 @@
     "build": "next build",
     "analyze": "ANALYZE=true next build",
     "start": "next start",
-    "export": "next export",
     "lint-local": "eslint \"./src/**/*.ts*\" --debug --fix",
     "lint": "eslint \"./src/**/*.ts*\" --output-file eslint_report.json --format json --cache --cache-location .eslintcache --cache-strategy content"
   },

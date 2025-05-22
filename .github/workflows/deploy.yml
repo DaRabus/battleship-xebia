@@ -3,8 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # Set this to your default branch name (main or master)
-  workflow_dispatch:  # Allows manual triggering of the workflow
+      - main # Set this to your default branch name (main or master)
+  workflow_dispatch: # Allows manual triggering of the workflow
 
 permissions:
   contents: read
@@ -13,7 +13,7 @@ permissions:
 
 # Allow only one concurrent deployment
 concurrency:
-  group: "pages"
+  group: 'pages'
   cancel-in-progress: true
 
 jobs:
@@ -35,11 +35,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build with Next.js
+      - name: Build with Next.js (including static export)
         run: npm run build
-
-      - name: Static HTML export with Next.js
-        run: npm run export || npx next export
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
