@@ -1,16 +1,17 @@
 # Battleship Game
 
-A modern implementation of the classic Battleship game built with Next.js, TypeScript, and Material UI, with state persistence using localStorage.
+A modern implementation of the classic Battleship game built with Next.js, TypeScript, and Material UI.  
+Developed with GitHub Copilot Agent for the Xebia Event on May 22, 2025.
 
 ![Battleship Game](public/profile.jpg)
 
 ## Technology Stack
 
-- **Frontend**: Next.js 14+
+- **Framework**: Next.js 15.x
 - **Language**: TypeScript
-- **UI Libraries**: Material UI, Tailwind CSS
-- **State Management**: React Hooks & localStorage
-- **Animation**: Custom Tailwind animations
+- **UI Libraries**: Material UI v6, Tailwind CSS
+- **State Management**: React Hooks & usehooks-ts (localStorage)
+- **AI & Animations**: Smart targeting computer AI, React Confetti for win celebration
 
 ## Features
 
@@ -118,3 +119,6 @@ npm run build
 ## License
 
 MIT
+
+---
+*Code generated in part by GitHub Copilot Agent for the Xebia Event on May 22, 2025.*

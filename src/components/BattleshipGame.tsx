@@ -229,7 +229,7 @@ const ShipDisplay = ({
           ? 'border-yellow-500 bg-yellow-50'
           : isPlaced
             ? 'border-green-500 bg-green-50'
-            : 'border-gray-300'
+            : 'border-gray-300 bg-gray-100'
       } rounded mb-2`}
     >
       <Typography variant="body2" color="black" className="font-bold mb-1">
@@ -273,7 +273,7 @@ const ShipsList = ({ ships, selectedShipId, orientation }: ShipsListProps) => {
   const placedShips = new Set(ships.map((ship) => ship.id));
 
   return (
-    <Box bgcolor="paper.primary" className="border p-3 mb-4 rounded">
+    <Paper elevation={2} className="p-4 mb-4">
       <Typography variant="h6" gutterBottom className="border-b pb-2 mb-2">
         Your Ships
       </Typography>
@@ -290,7 +290,7 @@ const ShipsList = ({ ships, selectedShipId, orientation }: ShipsListProps) => {
           </Grid>
         ))}
       </Grid>
-    </Box>
+    </Paper>
   );
 };
 
@@ -373,14 +373,16 @@ export const BattleshipGame = ({
       {showConfetti && <Confetti numberOfPieces={300} recycle={false} />}
       <Box className="flex justify-between items-center mb-4">
         <Typography variant="h4">Battleship Game</Typography>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={handleClearStorage}
-          size="small"
-        >
-          Clear Game Data
-        </Button>
+        <Box className="flex items-center space-x-2">
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleClearStorage}
+            size="small"
+          >
+            Clear Game Data
+          </Button>
+        </Box>
       </Box>
 
       <Typography
@@ -421,15 +423,6 @@ export const BattleshipGame = ({
         />
       )}
 
-      {/* Auto-Shoot Button for player turn */}
-      {!isSetup && gameState.gameStatus === 'playing' && gameState.playerTurn && (
-        <Box className="mb-4">
-          <Button variant="contained" color="secondary" onClick={onAutoShoot}>
-            Auto-Shoot
-          </Button>
-        </Box>
-      )}
-
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
           <Typography variant="h5" gutterBottom>
@@ -467,6 +460,19 @@ export const BattleshipGame = ({
             isSetup={isSetup}
             onCellClick={handleComputerBoardClick}
           />
+          {/* Auto-Shoot Button under Enemy Board */}
+          {gameState.playerTurn && gameState.gameStatus === 'playing' && (
+            <Box className="mt-2 text-center">
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={onAutoShoot}
+                size="medium"
+              >
+                Auto-Shoot
+              </Button>
+            </Box>
+          )}
         </Grid>
       </Grid>
 
