@@ -159,6 +159,14 @@ export const useBattleshipGame = () => {
     );
   };
 
+  // Auto-shoot using computer's targeting logic
+  const autoShoot = () => {
+    if (!gameState.playerTurn || gameState.gameStatus !== 'playing') return;
+    // Use AI logic to select next target on computer's board
+    const [row, col] = computerMove(gameState.computerBoard);
+    playerShoot(row, col);
+  };
+
   // Toggle ship orientation during setup
   const toggleOrientation = () => {
     if (gameState.gameStatus !== 'setup') return;
@@ -253,7 +261,8 @@ export const useBattleshipGame = () => {
     placePlayerShip,
     playerShoot,
     toggleOrientation,
-    autoPlaceRemainingShips
+    autoPlaceRemainingShips,
+    autoShoot
   };
 };
 

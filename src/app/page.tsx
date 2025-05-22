@@ -11,7 +11,8 @@ export default function Home() {
     placePlayerShip,
     playerShoot,
     toggleOrientation,
-    autoPlaceRemainingShips
+    autoPlaceRemainingShips,
+    autoShoot
   } = useBattleshipGame();
 
   return (
@@ -33,6 +34,7 @@ export default function Home() {
         onResetGame={resetGame}
         onToggleOrientation={toggleOrientation}
         onAutoPlace={autoPlaceRemainingShips}
+        onAutoShoot={autoShoot}
       />
     </Container>
   );

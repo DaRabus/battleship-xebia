@@ -325,6 +325,7 @@ interface BattleshipGameProps {
   onResetGame: () => void;
   onToggleOrientation: () => void;
   onAutoPlace: () => void;
+  onAutoShoot: () => void;
 }
 
 export const BattleshipGame = ({
@@ -334,7 +335,8 @@ export const BattleshipGame = ({
   onShoot,
   onResetGame,
   onToggleOrientation,
-  onAutoPlace
+  onAutoPlace,
+  onAutoShoot
 }: BattleshipGameProps) => {
   const [showConfetti, setShowConfetti] = useState(false);
   useEffect(() => {
@@ -419,6 +421,15 @@ export const BattleshipGame = ({
         />
       )}
 
+      {/* Auto-Shoot Button for player turn */}
+      {!isSetup && gameState.gameStatus === 'playing' && gameState.playerTurn && (
+        <Box className="mb-4">
+          <Button variant="contained" color="secondary" onClick={onAutoShoot}>
+            Auto-Shoot
+          </Button>
+        </Box>
+      )}
+
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
           <Typography variant="h5" gutterBottom>
@@ -458,14 +469,6 @@ export const BattleshipGame = ({
           />
         </Grid>
       </Grid>
-
-      {isSetup && (
-        <ShipsList
-          ships={gameState.playerBoard.ships}
-          selectedShipId={gameState.selectedShipId}
-          orientation={gameState.shipPlacementOrientation}
-        />
-      )}
 
       {isGameOver && (
         <Box className="mt-3">
