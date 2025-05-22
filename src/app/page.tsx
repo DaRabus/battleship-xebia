@@ -18,7 +18,7 @@ export default function Home() {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
         <Typography variant="h3" component="h1" gutterBottom align="center">
-          Battleship Game
+          Battleship Game vs. Bot
         </Typography>
         <Typography variant="body1" align="center" paragraph>
           A classic naval combat game where you strategically place your fleet and attempt to sink the enemy's ships.

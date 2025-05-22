@@ -13,8 +13,10 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   productionBrowserSourceMaps: true,
-  // Configure base path if deploying to a subdirectory
-  basePath: process.env.GITHUB_ACTIONS ? '/battleship-xebia' : '',
+  // Configure base path if deploying to a subdirectory (e.g. GitHub Pages)
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH ?? '',
+  // Make sure we use correct asset prefixes for GitHub Pages
+  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH ?? '',
   // Disable image optimization since it's not supported with export
   images: {
     unoptimized: true,

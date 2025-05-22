@@ -1,7 +1,7 @@
 'use client';
 import { Box, Typography, Grid, Paper, Button } from '@mui/material';
 import Image from 'next/image';
-import { CellState } from '@models/battleship';
+import type { CellState } from '@models/battleship';
 import { SHIP_SIZES } from '@models/battleship';
 import { ICONS } from '@react-ui-kit/icons/icon-paths';
 
@@ -32,7 +32,9 @@ const Cell = ({ state, row, col, isSetup, isPlayerBoard, onClick }: CellProps) =
 
   // During setup, we should show the player's ships but not the computer's
   // During gameplay, we should not reveal unshot computer ships
-  const showCell = isPlayerBoard || state === 'hit' || state === 'miss' || isSetup;
+  // Note: We're directly using the backgroundColor now instead of this variable
+  // Keeping this for potential future visibility control
+  // const showCell = isPlayerBoard || state === 'hit' || state === 'miss' || isSetup;
 
   return (
     <Box
@@ -47,13 +49,26 @@ const Cell = ({ state, row, col, isSetup, isPlayerBoard, onClick }: CellProps) =
       onClick={onClick}
     >
       {isHit ? (
-        <Image
-          src={ICONS.GITHUB}
-          alt="Hit"
-          className="w-6 h-6 filter invert animate-pulse"
-          width={24}
-          height={24}
-        />
+        <div className="hit-marker">
+          <Image
+            src={ICONS.GITHUB}
+            alt="Hit"
+            className="w-6 h-6 filter invert animate-pulse"
+            width={24}
+            height={24}
+            priority
+            onError={(e) => {
+              // Simple fallback if image fails to load
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              // Display a simple hit marker that works everywhere
+              target.parentElement?.insertAdjacentHTML(
+                'beforeend',
+                '<span>💥</span>'
+              );
+            }}
+          />
+        </div>
       ) : (
         content
       )}
@@ -165,12 +180,124 @@ const ShipSelector = ({
   );
 };
 
+// New component for visualizing ships
+interface ShipDisplayProps {
+  shipId: number;
+  size: number;
+  isPlaced: boolean;
+  isSelected: boolean;
+  orientation: 'horizontal' | 'vertical';
+}
+
+const ShipDisplay = ({
+  shipId,
+  size,
+  isPlaced,
+  isSelected,
+  orientation
+}: ShipDisplayProps) => {
+  const shipNames = [
+    'Carrier',
+    'Battleship',
+    'Cruiser',
+    'Submarine',
+    'Destroyer'
+  ];
+
+  return (
+    <Box
+      className={`p-1 border ${
+        isSelected
+          ? 'border-yellow-500 bg-yellow-50'
+          : isPlaced
+            ? 'border-green-500 bg-green-50'
+            : 'border-gray-300'
+      } rounded mb-2`}
+    >
+      <Typography variant="body2" color='black' className="font-bold mb-1">
+        {shipNames[shipId]} ({size} spaces)
+      </Typography>
+      <Box
+        className={`flex ${
+          orientation === 'vertical' ? 'flex-col' : 'flex-row'
+        } gap-0.5`}
+      >
+        {Array(size)
+          .fill(0)
+          .map((_, i) => (
+            <Box
+              key={`ship-${shipId}-cell-${i}`}
+              className="w-6 h-6 bg-blue-500 border border-blue-600"
+            />
+          ))}
+      </Box>
+      <Typography
+        variant="body2"
+        className={`mt-1 ${isPlaced ? 'text-green-600' : 'text-gray-600'}`}
+      >
+        {isPlaced ? 'Placed' : 'Not placed'}
+      </Typography>
+    </Box>
+  );
+};
+
+interface ShipsListProps {
+  ships: {
+    id: number;
+    size: number;
+    positions: [number, number][];
+  }[];
+  selectedShipId: number | null;
+  orientation: 'horizontal' | 'vertical';
+}
+
+const ShipsList = ({ ships, selectedShipId, orientation }: ShipsListProps) => {
+  const placedShips = new Set(ships.map((ship) => ship.id));
+
+  return (
+    <Box className="border p-3 mb-4 bg-gray-50 rounded">
+      <Typography variant="h6" gutterBottom className="border-b pb-2 mb-2">
+        Your Ships
+      </Typography>
+      <Grid container spacing={2}>
+        {SHIP_SIZES.map((size, index) => (
+          <Grid item xs={6} sm={4} md={4} lg={2} key={`ship-info-${index}`}>
+            <ShipDisplay
+              shipId={index}
+              size={size}
+              isPlaced={placedShips.has(index)}
+              isSelected={selectedShipId === index}
+              orientation={orientation}
+            />
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
+  );
+};
+
 interface BattleshipGameProps {
   gameState: {
     gameStatus: 'setup' | 'playing' | 'playerWon' | 'computerWon';
     playerTurn: boolean;
-    playerBoard: { grid: CellState[][] };
-    computerBoard: { grid: CellState[][] };
+    playerBoard: {
+      grid: CellState[][];
+      ships: {
+        id: number;
+        size: number;
+        positions: [number, number][];
+        hits: number;
+      }[];
+    };
+    computerBoard: {
+      grid: CellState[][];
+      ships: {
+        id: number;
+        size: number;
+        positions: [number, number][];
+        hits: number;
+      }[];
+    };
     selectedShipId: number | null;
     shipPlacementOrientation: 'horizontal' | 'vertical';
   };
@@ -241,6 +368,13 @@ export const BattleshipGame = ({
         {message}
       </Typography>
 
+      {/* Ship list visualization */}
+      <ShipsList
+        ships={gameState.playerBoard.ships}
+        selectedShipId={gameState.selectedShipId}
+        orientation={gameState.shipPlacementOrientation}
+      />
+
       {!isGameOver && isSetup && (
         <ShipSelector
           selectedShipId={gameState.selectedShipId}
@@ -275,6 +409,14 @@ export const BattleshipGame = ({
           />
         </Grid>
       </Grid>
+
+      {isSetup && (
+        <ShipsList
+          ships={gameState.playerBoard.ships}
+          selectedShipId={gameState.selectedShipId}
+          orientation={gameState.shipPlacementOrientation}
+        />
+      )}
 
       {isGameOver && (
         <Box className="mt-3 text-center">

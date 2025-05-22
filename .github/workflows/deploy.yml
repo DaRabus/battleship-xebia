@@ -35,8 +35,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Set environment variables
+        run: echo "NEXT_PUBLIC_BASE_PATH=/battleship-xebia" >> $GITHUB_ENV
+
       - name: Build with Next.js (including static export)
         run: npm run build
+        env:
+          NEXT_PUBLIC_BASE_PATH: '/battleship-xebia'
+
+      - name: Ensure .nojekyll file exists
+        run: touch ./out/.nojekyll
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
