@@ -1,0 +1,21 @@
+export const ICONS = {
+  GLOBE: '/icons/globe.svg',
+  REGISTER: '/icons/register.svg',
+  PROFILE: '/icons/profile.svg',
+  MEME: '/icons/meme.svg',
+  LOGIN: '/icons/login.svg',
+  LOGOUT: '/icons/logout.svg',
+  BOOK: '/icons/book.svg',
+  AUTHOR: '/icons/author.svg',
+  QUOTE: '/icons/quote.svg',
+  EMAIL: '/icons/email.svg',
+  GITHUB: '/icons/github.svg',
+  LINKEDIN: '/icons/linkedin.svg',
+  TELEGRAM: '/icons/telegram.svg',
+  CLOSE: '/icons/close.svg',
+  EDIT: '/icons/edit.svg',
+  QUESTION: '/icons/question.svg',
+  BOLD: '/icons/bold.svg',
+  ITALIC: '/icons/italic.svg',
+  UNDERLINE: '/icons/underline.svg'
+};
