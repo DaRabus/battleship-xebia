@@ -1,9 +1,11 @@
 'use client';
-import { Box, Typography, Grid, Paper, Button } from '@mui/material';
+import { Box, Button, Grid, Paper, Typography } from '@mui/material';
 import Image from 'next/image';
 import type { CellState } from '@models/battleship';
 import { SHIP_SIZES } from '@models/battleship';
 import { ICONS } from '@react-ui-kit/icons/icon-paths';
+import { BattleshipStats } from './BattleshipStats';
+import { BattleHistory } from './BattleHistory';
 
 interface CellProps {
   state: CellState;
@@ -12,13 +14,20 @@ interface CellProps {
   isSetup: boolean;
   isPlayerBoard: boolean;
   onClick: () => void;
-};
+}
 
-const Cell = ({ state, row, col, isSetup, isPlayerBoard, onClick }: CellProps) => {
+const Cell = ({
+  state,
+  row,
+  col,
+  isSetup,
+  isPlayerBoard,
+  onClick
+}: CellProps) => {
   // Define color based on cell state
   let backgroundColor = '#e0e0e0'; // Empty cell
-  let content = '';
   let isHit = false;
+  let isMiss = false;
 
   if (state === 'ship' && isPlayerBoard) {
     backgroundColor = '#64b5f6'; // Ship - blue
@@ -27,7 +36,7 @@ const Cell = ({ state, row, col, isSetup, isPlayerBoard, onClick }: CellProps) =
     isHit = true;
   } else if (state === 'miss') {
     backgroundColor = '#9e9e9e'; // Miss - gray
-    content = '•';
+    isMiss = true;
   }
 
   // During setup, we should show the player's ships but not the computer's
@@ -44,7 +53,7 @@ const Cell = ({ state, row, col, isSetup, isPlayerBoard, onClick }: CellProps) =
           : 'cursor-default'
       }`}
       sx={{
-        backgroundColor,
+        backgroundColor
       }}
       onClick={onClick}
     >
@@ -69,8 +78,12 @@ const Cell = ({ state, row, col, isSetup, isPlayerBoard, onClick }: CellProps) =
             }}
           />
         </div>
+      ) : isMiss ? (
+        <div className="miss-marker">
+          <span className="text-white font-bold text-xl">•</span>
+        </div>
       ) : (
-        content
+        ''
       )}
     </Box>
   );
@@ -92,7 +105,10 @@ const Board = ({ grid, isPlayerBoard, isSetup, onCellClick }: BoardProps) => {
           {Array(10)
             .fill(0)
             .map((_, i) => (
-              <Box key={`col-${i}`} className="w-9 h-6 flex items-center justify-center font-bold text-gray-600">
+              <Box
+                key={`col-${i}`}
+                className="w-9 h-6 flex items-center justify-center font-bold text-gray-600"
+              >
                 {String.fromCharCode(65 + i)}
               </Box>
             ))}
@@ -101,7 +117,9 @@ const Board = ({ grid, isPlayerBoard, isSetup, onCellClick }: BoardProps) => {
         {grid.map((row, rowIndex) => (
           <Box key={`row-${rowIndex}`} className="flex items-center">
             {/* Row label */}
-            <Box className="w-9 h-6 flex items-center justify-center font-bold text-gray-600">{rowIndex + 1}</Box>
+            <Box className="w-9 h-6 flex items-center justify-center font-bold text-gray-600">
+              {rowIndex + 1}
+            </Box>
 
             {row.map((cellState, colIndex) => (
               <Cell
@@ -151,11 +169,10 @@ const ShipSelector = ({
       {selectedShipId !== null ? (
         <Box>
           <Typography>
-            Currently placing: {shipNames[selectedShipId]} ({SHIP_SIZES[selectedShipId]} spaces)
+            Currently placing: {shipNames[selectedShipId]} (
+            {SHIP_SIZES[selectedShipId]} spaces)
           </Typography>
-          <Typography>
-            Orientation: {orientation}
-          </Typography>
+          <Typography>Orientation: {orientation}</Typography>
           <Button
             variant="contained"
             color="primary"
@@ -214,7 +231,7 @@ const ShipDisplay = ({
             : 'border-gray-300'
       } rounded mb-2`}
     >
-      <Typography variant="body2" color='black' className="font-bold mb-1">
+      <Typography variant="body2" color="black" className="font-bold mb-1">
         {shipNames[shipId]} ({size} spaces)
       </Typography>
       <Box
@@ -255,7 +272,7 @@ const ShipsList = ({ ships, selectedShipId, orientation }: ShipsListProps) => {
   const placedShips = new Set(ships.map((ship) => ship.id));
 
   return (
-    <Box className="border p-3 mb-4 bg-gray-50 rounded">
+    <Box bgcolor="paper.primary" className="border p-3 mb-4 rounded">
       <Typography variant="h6" gutterBottom className="border-b pb-2 mb-2">
         Your Ships
       </Typography>
@@ -319,7 +336,9 @@ export const BattleshipGame = ({
   onAutoPlace
 }: BattleshipGameProps) => {
   const isSetup = gameState.gameStatus === 'setup';
-  const isGameOver = gameState.gameStatus === 'playerWon' || gameState.gameStatus === 'computerWon';
+  const isGameOver =
+    gameState.gameStatus === 'playerWon' ||
+    gameState.gameStatus === 'computerWon';
 
   // Function to completely clear localStorage and reset the game
   const handleClearStorage = () => {
@@ -384,10 +403,31 @@ export const BattleshipGame = ({
         />
       )}
 
+      {/* Show battle statistics and history when game is being played or is over */}
+      {!isSetup && (
+        <>
+          <BattleshipStats
+            playerBoard={gameState.playerBoard}
+            computerBoard={gameState.computerBoard}
+          />
+          <BattleHistory
+            playerBoard={gameState.playerBoard}
+            computerBoard={gameState.computerBoard}
+          />
+        </>
+      )}
+
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
           <Typography variant="h5" gutterBottom>
             Your Fleet
+            {!isSetup &&
+              gameState.gameStatus === 'playing' &&
+              !gameState.playerTurn && (
+                <span className="ml-2 text-sm font-normal text-red-600 animate-pulse">
+                  (Enemy targeting...)
+                </span>
+              )}
           </Typography>
           <Board
             grid={gameState.playerBoard.grid}
@@ -400,6 +440,13 @@ export const BattleshipGame = ({
         <Grid item xs={12} md={6}>
           <Typography variant="h5" gutterBottom>
             Enemy Waters
+            {!isSetup &&
+              gameState.gameStatus === 'playing' &&
+              gameState.playerTurn && (
+                <span className="ml-2 text-sm font-normal text-blue-600 animate-pulse">
+                  (Your turn!)
+                </span>
+              )}
           </Typography>
           <Board
             grid={gameState.computerBoard.grid}
@@ -419,15 +466,24 @@ export const BattleshipGame = ({
       )}
 
       {isGameOver && (
-        <Box className="mt-3 text-center">
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            onClick={onResetGame}
-          >
-            Start New Game
-          </Button>
+        <Box className="mt-3">
+          <Typography variant="h5" className="text-center mb-3">
+            {gameState.gameStatus === 'playerWon'
+              ? 'Congratulations on your victory!'
+              : 'Better luck next time!'}
+          </Typography>
+
+          <Box className="text-center">
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={onResetGame}
+              className="mb-4"
+            >
+              Start New Game
+            </Button>
+          </Box>
         </Box>
       )}
     </Box>
