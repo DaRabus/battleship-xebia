@@ -1,13 +1,9 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import type { GameState } from '@models/battleship';
-import {
-  checkGameOver,
-  computerMove,
-  initialGameState,
-  processShot
-} from '@models/battleship';
+import { computerMove, initialGameState } from '@models/battleship';
 
 const BATTLESHIP_STATE_KEY = 'battleship-game-state';
 

@@ -1,7 +1,7 @@
 'use client';
-import { useBattleshipGame } from '@hooks/useBattleshipGame';
-import { Container, Typography, Box, Paper } from '@mui/material';
-import { BattleshipGame } from "@components/BattleshipGame";
+import { useBattleshipGame } from '@hooks/use-battleship-game';
+import { Container, Paper, Typography } from '@mui/material';
+import { BattleshipGame } from '@components/BattleshipGame';
 
 export default function Home() {
   const {
@@ -22,7 +22,8 @@ export default function Home() {
           Battleship Game vs. Bot
         </Typography>
         <Typography variant="body1" align="center" paragraph>
-          A classic naval combat game where you strategically place your fleet and attempt to sink the enemy's ships.
+          A classic naval combat game where you strategically place your fleet
+          and attempt to sink the enemy's ships.
         </Typography>
       </Paper>
 

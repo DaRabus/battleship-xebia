@@ -3,8 +3,6 @@
 A modern implementation of the classic Battleship game built with Next.js, TypeScript, and Material UI.  
 Developed with GitHub Copilot Agent for the Xebia Event on May 22, 2025.
 
-![Battleship Game](public/profile.jpg)
-
 ## Technology Stack
 
 - **Framework**: Next.js 15.x
