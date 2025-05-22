@@ -5,7 +5,7 @@ import Image from 'next/image';
 import type { CellState } from '@models/battleship';
 import { SHIP_SIZES } from '@models/battleship';
 import { ICONS } from '@react-ui-kit/icons/icon-paths';
-import { BattleshipStats } from './BattleshipStats';
+import { BattleshipStats } from './battleship-stats';
 import Confetti from 'react-confetti';
 
 interface CellProps {

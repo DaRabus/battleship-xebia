@@ -1,7 +1,7 @@
 'use client';
 import { useBattleshipGame } from '@hooks/use-battleship-game';
 import { Container, Paper, Typography } from '@mui/material';
-import { BattleshipGame } from '@components/BattleshipGame';
+import { BattleshipGame } from '@components/battleship-game';
 
 export default function Home() {
   const {
