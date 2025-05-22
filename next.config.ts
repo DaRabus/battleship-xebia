@@ -1,10 +1,4 @@
 import type { NextConfig } from 'next';
-import withBundleAnalyzer from '@next/bundle-analyzer';
-
-const withAnalyzer = withBundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-  analyzerMode: 'json'
-});
 
 const nextConfig: NextConfig = {
   output: 'export', // Changed from 'standalone' to 'export' for static site generation
@@ -31,19 +25,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  async headers() {
-    return [
-      {
-        source: '/:path*/opengraph-image',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=86400, stale-while-revalidate=3600',
-          }
-        ]
-      }
-    ];
-  }
 };
 
-export default withAnalyzer(nextConfig);
+export default nextConfig;

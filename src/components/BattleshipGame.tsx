@@ -1,11 +1,12 @@
 'use client';
+import { useEffect, useState } from 'react';
 import { Box, Button, Grid, Paper, Typography } from '@mui/material';
 import Image from 'next/image';
 import type { CellState } from '@models/battleship';
 import { SHIP_SIZES } from '@models/battleship';
 import { ICONS } from '@react-ui-kit/icons/icon-paths';
 import { BattleshipStats } from './BattleshipStats';
-import { BattleHistory } from './BattleHistory';
+import Confetti from 'react-confetti';
 
 interface CellProps {
   state: CellState;
@@ -335,6 +336,12 @@ export const BattleshipGame = ({
   onToggleOrientation,
   onAutoPlace
 }: BattleshipGameProps) => {
+  const [showConfetti, setShowConfetti] = useState(false);
+  useEffect(() => {
+    if (gameState.gameStatus === 'playerWon') {
+      setShowConfetti(true);
+    }
+  }, [gameState.gameStatus]);
   const isSetup = gameState.gameStatus === 'setup';
   const isGameOver =
     gameState.gameStatus === 'playerWon' ||
@@ -361,6 +368,7 @@ export const BattleshipGame = ({
 
   return (
     <Box className="p-2">
+      {showConfetti && <Confetti numberOfPieces={300} recycle={false} />}
       <Box className="flex justify-between items-center mb-4">
         <Typography variant="h4">Battleship Game</Typography>
         <Button
@@ -403,18 +411,12 @@ export const BattleshipGame = ({
         />
       )}
 
-      {/* Show battle statistics and history when game is being played or is over */}
+      {/* Show battle statistics when game is playing or over */}
       {!isSetup && (
-        <>
-          <BattleshipStats
-            playerBoard={gameState.playerBoard}
-            computerBoard={gameState.computerBoard}
-          />
-          <BattleHistory
-            playerBoard={gameState.playerBoard}
-            computerBoard={gameState.computerBoard}
-          />
-        </>
+        <BattleshipStats
+          playerBoard={gameState.playerBoard}
+          computerBoard={gameState.computerBoard}
+        />
       )}
 
       <Grid container spacing={4}>

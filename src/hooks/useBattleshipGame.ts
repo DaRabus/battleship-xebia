@@ -91,7 +91,7 @@ export const useBattleshipGame = () => {
           col
         );
 
-        let updatedGameState = {
+        const updatedGameState = {
           ...gameState,
           computerBoard: updatedBoard,
           playerTurn: false
@@ -126,6 +126,11 @@ export const useBattleshipGame = () => {
             computerRow,
             computerCol
           );
+
+          // Update computer AI with the result of its move
+          import('@models/battleship').then(({ processComputerMove }) => {
+            processComputerMove(computerResult.hit, computerRow, computerCol);
+          });
 
           const afterComputerGameState = {
             ...updatedGameState,

@@ -34,7 +34,8 @@ export const BattleshipStats: React.FC<BattleshipStatsProps> = ({
     .flat()
     .filter((cell) => cell === 'miss').length;
   const playerShots = playerHits + playerMisses;
-  const playerAccuracy = playerShots > 0 ? ((playerHits / playerShots) * 100).toFixed(1) : '0';
+  const playerAccuracy =
+    playerShots > 0 ? ((playerHits / playerShots) * 100).toFixed(1) : '0';
 
   // Count hits and misses for computer shots (on player board)
   const computerHits = playerBoard.grid
@@ -44,13 +45,16 @@ export const BattleshipStats: React.FC<BattleshipStatsProps> = ({
     .flat()
     .filter((cell) => cell === 'miss').length;
   const computerShots = computerHits + computerMisses;
-  const computerAccuracy = computerShots > 0 ? ((computerHits / computerShots) * 100).toFixed(1) : '0';
+  const computerAccuracy =
+    computerShots > 0 ? ((computerHits / computerShots) * 100).toFixed(1) : '0';
 
   // Calculate ships destroyed
-  const playerShipsDestroyed = computerBoard.ships
-    .filter((ship) => ship.hits === ship.size).length;
-  const computerShipsDestroyed = playerBoard.ships
-    .filter((ship) => ship.hits === ship.size).length;
+  const playerShipsDestroyed = computerBoard.ships.filter(
+    (ship) => ship.hits === ship.size
+  ).length;
+  const computerShipsDestroyed = playerBoard.ships.filter(
+    (ship) => ship.hits === ship.size
+  ).length;
   const totalShips = playerBoard.ships.length;
 
   return (
@@ -68,13 +72,13 @@ export const BattleshipStats: React.FC<BattleshipStatsProps> = ({
             <Box className="pl-3">
               <Typography>Shots Fired: {playerShots}</Typography>
               <Typography>
-                Hits:{" "}
+                Hits:{' '}
                 <span className="text-red-600 font-bold">{playerHits}</span>
               </Typography>
               <Typography>Misses: {playerMisses}</Typography>
               <Typography>Accuracy: {playerAccuracy}%</Typography>
               <Typography>
-                Enemy Ships Destroyed:{" "}
+                Enemy Ships Destroyed:{' '}
                 <span className="text-red-600 font-bold">
                   {playerShipsDestroyed}/{totalShips}
                 </span>
@@ -89,13 +93,13 @@ export const BattleshipStats: React.FC<BattleshipStatsProps> = ({
             <Box className="pl-3">
               <Typography>Shots Fired: {computerShots}</Typography>
               <Typography>
-                Hits:{" "}
+                Hits:{' '}
                 <span className="text-red-600 font-bold">{computerHits}</span>
               </Typography>
               <Typography>Misses: {computerMisses}</Typography>
               <Typography>Accuracy: {computerAccuracy}%</Typography>
               <Typography>
-                Your Ships Destroyed:{" "}
+                Your Ships Destroyed:{' '}
                 <span className="text-red-600 font-bold">
                   {computerShipsDestroyed}/{totalShips}
                 </span>

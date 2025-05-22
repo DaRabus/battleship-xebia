@@ -2,31 +2,31 @@
 
 export type CellState = 'empty' | 'ship' | 'hit' | 'miss';
 
-export type Ship = {
+export interface Ship {
   id: number;
   size: number;
-  positions: Array<[number, number]>;
+  positions: [number, number][];
   hits: number;
-};
+}
 
-export type Board = {
+export interface Board {
   size: number;
   grid: CellState[][];
   ships: Ship[];
-};
+}
 
-export type GameState = {
+export interface GameState {
   playerBoard: Board;
   computerBoard: Board;
   gameStatus: 'setup' | 'playing' | 'playerWon' | 'computerWon';
   playerTurn: boolean;
   selectedShipId: number | null;
   shipPlacementOrientation: 'horizontal' | 'vertical';
-};
+}
 
 export const SHIP_SIZES = [5, 4, 3, 3, 2]; // Carrier, Battleship, Cruiser, Submarine, Destroyer
 
-export const createEmptyBoard = (size: number = 10): Board => {
+export const createEmptyBoard = (size = 10): Board => {
   const grid: CellState[][] = Array(size)
     .fill(null)
     .map(() => Array(size).fill('empty'));
@@ -106,11 +106,11 @@ export const placeShip = (
 
   const newBoard = {
     ...board,
-    grid: [...board.grid.map(row => [...row])],
+    grid: [...board.grid.map((row) => [...row])],
     ships: [...board.ships]
   };
 
-  const positions: Array<[number, number]> = [];
+  const positions: [number, number][] = [];
 
   for (let i = 0; i < shipSize; i++) {
     const row = orientation === 'horizontal' ? startRow : startRow + i;
@@ -141,8 +141,8 @@ export const processShot = (
 
   const newBoard = {
     ...board,
-    grid: [...board.grid.map(row => [...row])],
-    ships: [...board.ships.map(ship => ({ ...ship }))]
+    grid: [...board.grid.map((row) => [...row])],
+    ships: [...board.ships.map((ship) => ({ ...ship }))]
   };
 
   if (board.grid[row][col] === 'ship') {
@@ -150,8 +150,10 @@ export const processShot = (
     newBoard.grid[row][col] = 'hit';
 
     // Find which ship was hit
-    const hitShipIndex = board.ships.findIndex(ship =>
-      ship.positions.some(([shipRow, shipCol]) => shipRow === row && shipCol === col)
+    const hitShipIndex = board.ships.findIndex((ship) =>
+      ship.positions.some(
+        ([shipRow, shipCol]) => shipRow === row && shipCol === col
+      )
     );
 
     if (hitShipIndex >= 0) {
@@ -199,20 +201,147 @@ export const generateComputerBoard = (): Board => {
 
 // Check if all ships are destroyed
 export const checkGameOver = (board: Board): boolean => {
-  return board.ships.every(ship => ship.hits === ship.size);
+  return board.ships.every((ship) => ship.hits === ship.size);
 };
+
+// Track computer's last successful hit
+let lastSuccessfulHits: [number, number][] = [];
+let targetMode = false;
+let currentDirections: ('up' | 'right' | 'down' | 'left')[] = [];
 
 // Computer AI to make a move
 export const computerMove = (board: Board): [number, number] => {
-  // Simple random strategy for now
-  // A more advanced AI would target around hits
   const { size, grid } = board;
-  let row, col;
 
+  // Reset targeting if we don't have any successful hits to follow up on
+  if (lastSuccessfulHits.length === 0) {
+    targetMode = false;
+  }
+
+  // If we have a hit, try adjacent cells
+  if (targetMode && lastSuccessfulHits.length > 0) {
+    // Take the most recent hit as reference
+    const [hitRow, hitCol] = lastSuccessfulHits[lastSuccessfulHits.length - 1];
+
+    // If we have more than one hit in a line, determine the direction
+    if (lastSuccessfulHits.length >= 2) {
+      const [previousHitRow, previousHitCol] =
+        lastSuccessfulHits[lastSuccessfulHits.length - 2];
+
+      // Determine direction of multiple hits (horizontal or vertical)
+      if (hitRow === previousHitRow) {
+        // Horizontal ship
+        currentDirections = ['left', 'right'];
+      } else if (hitCol === previousHitCol) {
+        // Vertical ship
+        currentDirections = ['up', 'down'];
+      }
+    }
+
+    // Try directions from the current hit
+    if (currentDirections.length === 0) {
+      currentDirections = ['up', 'right', 'down', 'left'];
+    }
+
+    // Shuffle the directions to avoid predictable patterns
+    const shuffledDirections = [...currentDirections].sort(
+      () => Math.random() - 0.5
+    );
+
+    for (const direction of shuffledDirections) {
+      let targetRow = hitRow;
+      let targetCol = hitCol;
+
+      switch (direction) {
+        case 'up':
+          targetRow -= 1;
+          break;
+        case 'right':
+          targetCol += 1;
+          break;
+        case 'down':
+          targetRow += 1;
+          break;
+        case 'left':
+          targetCol -= 1;
+          break;
+      }
+
+      // Check if target is valid and hasn't been targeted before
+      if (
+        targetRow >= 0 &&
+        targetRow < size &&
+        targetCol >= 0 &&
+        targetCol < size &&
+        grid[targetRow][targetCol] !== 'hit' &&
+        grid[targetRow][targetCol] !== 'miss'
+      ) {
+        return [targetRow, targetCol];
+      }
+    }
+  }
+
+  // If targeting fails or we're in hunt mode, make a random move
+  let row, col;
+  let attempts = 0;
+  const maxAttempts = 100; // Prevent infinite loops
+
+  // Use a "checkerboard" pattern for efficiency when hunting
   do {
-    row = Math.floor(Math.random() * size);
-    col = Math.floor(Math.random() * size);
-  } while (grid[row][col] === 'hit' || grid[row][col] === 'miss');
+    if (attempts % 2 === 0) {
+      // On even attempts, use checkerboard pattern
+      row = Math.floor(Math.random() * size);
+      col =
+        row % 2 === 0
+          ? Math.floor(Math.random() * Math.ceil(size / 2)) * 2
+          : Math.floor(Math.random() * Math.floor(size / 2)) * 2 + 1;
+    } else {
+      // On odd attempts, use pure random as fallback
+      row = Math.floor(Math.random() * size);
+      col = Math.floor(Math.random() * size);
+    }
+    attempts++;
+  } while (
+    (grid[row][col] === 'hit' || grid[row][col] === 'miss') &&
+    attempts < maxAttempts
+  );
+
+  // In case we couldn't find a move with the pattern, fallback to first available
+  if (attempts >= maxAttempts) {
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if (grid[r][c] !== 'hit' && grid[r][c] !== 'miss') {
+          return [r, c];
+        }
+      }
+    }
+  }
 
   return [row, col];
+};
+
+// Process computer's shot result
+export const processComputerMove = (
+  hit: boolean,
+  row: number,
+  col: number,
+  shipSunk?: boolean
+): void => {
+  if (hit) {
+    // Add this hit to our list of successful hits
+    lastSuccessfulHits.push([row, col]);
+    targetMode = true;
+  } else if (targetMode) {
+    // If we missed while targeting, remove the direction we just tried
+    // This part is tricky as we don't explicitly store the last direction tried for a specific hit.
+    // For now, if it's a miss in target mode, we might have hit the end of a ship or an empty space.
+    // The current logic will make it try other directions from the last hit, or eventually revert to hunt.
+  }
+
+  if (shipSunk) {
+    // If we sink a ship, reset targeting
+    lastSuccessfulHits = [];
+    targetMode = false;
+    currentDirections = [];
+  }
 };

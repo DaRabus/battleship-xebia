@@ -51,46 +51,56 @@ export const BattleHistory: React.FC<BattleHistoryProps> = ({
 
         <Box className="flex flex-wrap justify-around mt-2">
           <Box className="w-full md:w-1/2 mb-3">
-            <Typography variant="subtitle2" className="font-bold text-blue-700 mb-1">
+            <Typography
+              variant="subtitle2"
+              className="font-bold text-blue-700 mb-1"
+            >
               Your Shots:
             </Typography>
             <Box className="grid grid-cols-5 gap-1 w-max mx-auto">
-              {playerShotGrid.map((row, rowIndex) => (
+              {playerShotGrid.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (
                   <Box
                     key={`player-shot-${rowIndex}-${colIndex}`}
                     className="w-4 h-4 border border-gray-300"
                     sx={{
                       backgroundColor:
-                        cell === 'hit' ? '#e53935' :
-                        cell === 'miss' ? '#9e9e9e' :
-                        '#e0e0e0'
+                        cell === 'hit'
+                          ? '#e53935'
+                          : cell === 'miss'
+                            ? '#9e9e9e'
+                            : '#e0e0e0'
                     }}
                   />
                 ))
-              ))}
+              )}
             </Box>
           </Box>
 
           <Box className="w-full md:w-1/2">
-            <Typography variant="subtitle2" className="font-bold text-red-700 mb-1">
+            <Typography
+              variant="subtitle2"
+              className="font-bold text-red-700 mb-1"
+            >
               Enemy Shots:
             </Typography>
             <Box className="grid grid-cols-5 gap-1 w-max mx-auto">
-              {computerShotGrid.map((row, rowIndex) => (
+              {computerShotGrid.map((row, rowIndex) =>
                 row.map((cell, colIndex) => (
                   <Box
                     key={`computer-shot-${rowIndex}-${colIndex}`}
                     className="w-4 h-4 border border-gray-300"
                     sx={{
                       backgroundColor:
-                        cell === 'hit' ? '#e53935' :
-                        cell === 'miss' ? '#9e9e9e' :
-                        '#e0e0e0'
+                        cell === 'hit'
+                          ? '#e53935'
+                          : cell === 'miss'
+                            ? '#9e9e9e'
+                            : '#e0e0e0'
                     }}
                   />
                 ))
-              ))}
+              )}
             </Box>
           </Box>
         </Box>
