@@ -1,0 +1,15 @@
+name: 'Cache next build'
+description: 'Restore and cache next build'
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache node_modules
+      uses: actions/cache@v4
+      env:
+        cache-name: cache-next-build-v1
+      with:
+        path: |
+          ${{ github.workspace }}/.next/
+        key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+        restore-keys: |
+          ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-

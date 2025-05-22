@@ -1,0 +1,115 @@
+name: Build and Release Production Image
+on:
+  push:
+    branches:
+      - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-and-release:
+    name: Build and Release Production Image with GitHub Release
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Latest Release
+        id: get_latest_release
+        run: |
+          LATEST_RELEASE=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' || echo "release-v-0.0.0.0-0")
+          echo "LATEST_RELEASE=${LATEST_RELEASE}" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Determine New Version
+        id: new_version
+        run: |
+          LATEST_RELEASE="${{ steps.get_latest_release.outputs.LATEST_RELEASE }}"
+          CURRENT_TIMESTAMP=$(date +%s)
+
+          # Extract timestamp and version parts
+          PREV_TIMESTAMP="${LATEST_RELEASE##*-}"
+          VERSION_PREFIX="${LATEST_RELEASE%-*}"
+          VERSION_NUMBER="${VERSION_PREFIX#release-v-}"
+          IFS='.' read -ra VERSION_PARTS <<< "$VERSION_NUMBER"
+
+          # Handle PR labels (assuming push event, adjust if needed)
+          PR_LABEL="default" # Default if no PR context
+          echo "PR_LABEL determined as: $PR_LABEL"
+
+          case "$PR_LABEL" in
+            "bugfix")
+              VERSION_PARTS[3]=$((VERSION_PARTS[3] + 1))
+              ;;
+            "new-stuff")
+              VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
+              VERSION_PARTS[3]=1
+              ;;
+            "big-thing")
+              VERSION_PARTS[1]=$((VERSION_PARTS[1] + 1))
+              VERSION_PARTS[2]=0
+              VERSION_PARTS[3]=1
+              ;;
+            *)
+              # Default increment patch version
+              VERSION_PARTS[3]=$((VERSION_PARTS[3] + 1))
+              ;;
+          esac
+
+          # Construct new version
+          NEW_VERSION="release-v-${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}.${VERSION_PARTS[3]}-${CURRENT_TIMESTAMP}"
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      # Remaining steps unchanged
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Create env file
+        run: |
+          echo "🔑 Updating .env file..."
+          cat <<EOF > .env.production
+          PEPPER=${{ env.PEPPER }}
+          SESSION_SECRET=${{ env.SESSION_SECRET }}
+          DATABASE_URL=${{ env.DATABASE_URL }}
+          NODE_ENV=production
+          BLOB_READ_WRITE_TOKEN=${{ env.BLOB_READ_WRITE_TOKEN }}
+          EOF
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            darabus/homelab-rabus:latest
+            darabus/homelab-rabus:${{ steps.new_version.outputs.NEW_VERSION }}
+            darabus/homelab-rabus:sha-${{ github.sha }}
+          build-args: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            API_KEY=${{ secrets.API_KEY }}
+            NODE_ENV=production
+            PEPPER=${{ secrets.PEPPER }}
+            SESSION_SECRET=${{ secrets.SESSION_SECRET }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.new_version.outputs.NEW_VERSION }}
+          name: ${{ steps.new_version.outputs.NEW_VERSION }}
+          body: |
+            **Docker Image:** `darabus/homelab-rabus:${{ steps.new_version.outputs.NEW_VERSION }}`
+            - Build from commit: ${{ github.sha }}
+          draft: false
+          prerelease: false

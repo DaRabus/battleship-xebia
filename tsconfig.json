@@ -25,6 +25,7 @@
       "@components/*": ["./src/components/*"],
       "@theme/*": ["./src/theme/*"],
       "@hooks/*": ["./src/hooks/*"],
+      "@models/*": ["./src/models/*"],
       "@react-feature/*": ["./src/react/feature/*"],
       "@react-ui-kit/*": ["./src/react/ui-kit/*"],
       "@helpers/*": ["./src/helpers/*"]

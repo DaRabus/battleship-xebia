@@ -1,0 +1,10 @@
+name: 'npm install'
+description: 'install dependencies without scripts and then rebuild sharp'
+runs:
+  using: 'composite'
+  steps:
+    - name: npm install
+      run: |
+        npm install --no-audit
+        npm rebuild --platform=linux --arch=x64 sharp
+      shell: bash

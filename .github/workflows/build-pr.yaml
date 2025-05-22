@@ -1,0 +1,76 @@
+name: Build Pull Request
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CHECKOUT_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+jobs:
+  build:
+    name: 'Build Pull Request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: pull_request
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - name: Init CI Job
+        uses: ./.github/actions/init-ci-job
+
+      - name: Cache next build
+        uses: ./.github/actions/cache-next
+
+      - name: Create .env file for base branch
+        run: |
+          touch .env
+          echo "DATABASE_URL=${{ inputs.databaseUrl }}" > .env
+        shell: bash
+
+      - name: Prepare Prisma
+        run: |
+          npm install -g prisma
+          prisma generate
+
+      - name: Build
+        run: npm run build --if-present
+
+  bundlesize:
+    name: Bundle size
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/bundle-size
+        with:
+          label: homelab-bundle-size
+          databaseUrl: ${{ env.DATABASE_URL }}
+
+# Not really making sense to run this on PRs too less overview
+#  docker-diff:
+#    name: Docker Diff
+#    if: github.event_name == 'pull_request'
+#    needs: build
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: ./.github/actions/compare-docker-images
+#        with:
+#          label: docker-diff-homelab
+#          baseRef: ${{ github.base_ref }}
+#          headRef: ${{ github.head_ref }}
+#          databaseUrl: ${{ secrets.DATABASE_URL }}
+#          apiKey: ${{ secrets.API_KEY }}
+#          pepper: ${{ secrets.PEPPER }}
+#          sessionSecret: ${{ secrets.SESSION_SECRET }}

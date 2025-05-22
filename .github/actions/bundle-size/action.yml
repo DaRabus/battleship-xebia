@@ -1,0 +1,97 @@
+name: Bundle size check
+description: Check nextjs bundle size
+inputs:
+  label:
+    description: Name of the project
+    required: true
+  databaseUrl:
+    description: Database URL
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/init-ci-job
+    - uses: ./.github/actions/cache-next
+
+    - name: Create .env file for base branch
+      run: |
+        touch .env
+        echo "DATABASE_URL=${{ inputs.databaseUrl }}" > .env
+      shell: bash
+
+    - name: Prepare Prisma
+      shell: bash
+      run: |
+        npm install -g prisma
+        prisma generate
+
+    - name: Build
+      shell: bash
+      env:
+        ANALYZE: 'true'
+        ANALYZER_MODE: json
+      run: |
+        mkdir -p .next/analyze/comparision
+        npm run analyze
+
+    - name: Download master JSON
+      uses: dawidd6/action-download-artifact@v6
+      if: always()
+      with:
+        branch: main
+        name: compare-sizes-${{ inputs.label }}.json
+        path: .next/analyze/comparision
+        if_no_artifact_found: 'ignore'
+
+    - name: Analyze
+      shell: bash
+      run: node .github/actions/bundle-size/analyze-bundles.js .next ${{ inputs.label }}
+
+    - name: Upload bundle
+      uses: actions/upload-artifact@v4
+      with:
+        name: compare-sizes-${{ inputs.label }}.json
+        path: .next/analyze/bundle-sizes.json
+
+    # A bit of find & replace on our output text for displaying properly. Save this to an Action variable.
+    - name: Get comment body
+      shell: bash
+      id: get-comment-body
+      if: success() && github.event.number
+      run: |
+        EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+        echo "body<<$EOF" >> $GITHUB_OUTPUT
+        # Add label-specific marker to comment
+        echo "<!-- GH-BOT-${{ inputs.label }} -->" >> $GITHUB_OUTPUT
+        echo "$(cat .next/analyze/bundle-sizes.txt)" >> $GITHUB_OUTPUT
+        echo "$EOF" >> $GITHUB_OUTPUT
+
+    # Looks for a comment with <!-- GH-BOT-label --> somewhere in its body.
+    - name: Find Comment
+      uses: peter-evans/find-comment@v3
+      if: success() && github.event.number
+      id: fc
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        comment-author: 'github-actions[bot]'
+        body-includes: 'GH-BOT-${{ inputs.label }}'
+
+    # If no comment exists, make one with the previously saved Action variable!
+    - name: Create Comment
+      uses: peter-evans/create-or-update-comment@v4
+      if: success() && github.event.number && steps.fc.outputs.comment-id == 0
+      with:
+        issue-number: ${{ github.event.number }}
+        body: ${{ steps.get-comment-body.outputs.body }}
+
+    # Otherwise, if a comment already exists, replace its body.
+    - name: Update Comment
+      uses: peter-evans/create-or-update-comment@v4
+      if: success() && github.event.number && steps.fc.outputs.comment-id != 0
+      with:
+        issue-number: ${{ github.event.number }}
+        body: ${{ steps.get-comment-body.outputs.body }}
+        comment-id: ${{ steps.fc.outputs.comment-id }}
+        edit-mode: replace

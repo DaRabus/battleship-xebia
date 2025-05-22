@@ -1,0 +1,16 @@
+name: 'Init CI Job'
+description: 'Setup workspace for executing CI job'
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@v4
+      name: Setup Node
+      with:
+        node-version-file: '.nvmrc'
+        cache: 'npm'
+
+    - name: Cache node_modules
+      uses: ./.github/actions/cache-node_modules
+
+    - name: Install dependencies
+      uses: ./.github/actions/npm-install

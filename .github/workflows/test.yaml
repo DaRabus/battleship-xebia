@@ -1,0 +1,34 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CHECKOUT_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+
+jobs:
+  test:
+    name: 'Integration Test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+          ref: ${{ env.CHECKOUT_REF }}
+
+      - name: Init CI Job
+        uses: ./.github/actions/init-ci-job
+
+      - name: Jest Test
+        run: npm run test
